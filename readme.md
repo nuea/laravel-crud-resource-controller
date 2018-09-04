@@ -1,65 +1,163 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+## Laravel CRUD Resource Controller
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+### 1.Create new Laravel Project
 
-## About Laravel
+    composer create-project --prefer-dist laravel/laravel crud-resource-controller
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as:
+And wait until install all package is finished.
+After finished, open project with Text editor.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 2. Database Configurations
+    
+Create new database and setup the project.
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications.
+Database is name "laravel_crud_resource_controller" 
 
-## Learning Laravel
+Open ".env" file. Change confi database.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of any modern web application framework, making it a breeze to get started learning the framework.
+    DB_DATABASE=homestead       ==>     DB_DATABASE=laravel_crud_resource_controller
 
-If you're not in the mood to read, [Laracasts](https://laracasts.com) contains over 1100 video tutorials on a range of topics including Laravel, modern PHP, unit testing, JavaScript, and more. Boost the skill level of yourself and your entire team by digging into our comprehensive video library.
+    DB_USERNAME=homestead       ==>     DB_USERNAME=root
 
-## Laravel Sponsors
+    DB_PASSWORD=secret          ==>     DB_PASSWORD=
 
-We would like to extend our thanks to the following sponsors for helping fund on-going Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell):
+### 3. Back to CMD or Terminal, go to your project folder.
+    cd crud-resource-controller
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
+### 4. Start a development server at http://localhost:8000 in your project.
+    php artisan serve
 
-## Contributing
+### 5. Create Post Migration table
+    php artisan make:migration create_posts_table
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 6. Open "create_posts_table" file created by Migration.
+    
+Add new field in Post migration table.
 
-## Security Vulnerabilities
+    Schema::create('posts', function (Blueprint $table) {
+        $table->increments('id');
+        $table->string('title');
+        $table->text('body');
+        $table->timestamps();
+    });
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 7. Open "AppServiceProvider.php" file in "app/Providers" folder.
 
-## License
+Import Schema: 
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    use Illuminate\Support\Facades\Schema;
+
+In boot function add: 
+
+    Schema::defaultStringLength(191);
+
+### 8. Open "database.php" file in "config" folder.
+    
+Change 'mysql' setting
+    
+    'charset' => 'utf8mb4',                 ==>     'charset' => 'utf8',
+    'collation' => 'utf8mb4_unicode_ci',    ==>     'collation' => 'utf8_unicode_ci',
+    
+### 9. Next to run migration command
+    php artisan migrate
+
+### 10. Now, we have new "posts" table in your database.
+
+### 11. Create new Model and new Controller
+Create 'Post' model
+
+    php artisan make:model Post
+
+Create 'PostController' with "--resource" parameter
+    
+    php artisan make:controller PostController --resource
+
+### 12 Open Post Model => "Post.php" file in "app" folder.
+
+Declare our table  this:
+
+    protected $table = 'posts';
+    protected $fillable = ['title','body'];
+
+### 13. Open "PostController.php" file.
+
+In file, use our model "Post model".
+
+    use App\Post;
+
+"index" method will show all data from datavase to our index view.
+    
+    $posts = Post::latest()->paginate(5);
+
+    return view('posts.index', compact('posts'))->with('i',(request()->input('page',1) -1) *5);
+
+### 14. Next, install Laravel Collective (Html and Form)
+    
+    composer require laravelcollective/html
+
+### 15. After successfully install package, open "config/app.php" file and add service provider and alias.
+'providers' add this:
+    
+    Collective\Html\HtmlServiceProvider::class,
+'aliases' add this:
+
+    'Form' => Collective\Html\FormFacade::class,
+    'Html' => Collective\Html\HtmlFacade::class,
+
+### 16. Create new Route in "web.php" file in "routes" folder.
+    
+    Route::resource('posts','PostController');
+
+### 17. In the views(resources/views), create new "posts" folder and in folder create more file.
+(master.blade.php, index.blade.php, edit.blade.php, show.blade.php, create.blade.php, form.blade.php)
+
+### 18. Create "master.blade.php" : master is blade template for mastering out bootstrap pages.
+
+### 19. Create "index.blade.php" : Now, in the index page, will show all data and store to the table.
+
+### 20. Add new data into database and see it from our index page (http://localhost:8000/posts)
+
+### 21. Back to "PostController.php" file go to "create" method. Create new view (create.blade.php)
+    
+    return view('posts.create');
+
+### 22. Create "create.blade.php" and "form.blade.php" file and add code.
+
+### 23. Back to "PostController.php" file for save data into database, create new method in Store function
+    
+    request()->validate([
+            'title' => 'required',
+            'body' => 'required',
+    ]);
+
+    Post::create($request->all());
+
+    return redirect()->route('posts.index')->with('success','Post created successfully');
+
+### 24. Test save new data into database using "store" method. (http://localhost:8000/posts/create)
+
+### 25. Back to "PostController.php" file go to "show" method. Show method will display the single data in show page. (show.blade.php)
+
+### 26. Create "show.blade.php" file is new page and add code. 
+
+### 27. Back to "PostController.php" file. The "edit" method will return to the view(edit.blade.php) and display single data.
+    
+    $post = Post::find($id);
+    
+    return view('posts.edit', compact('post'));
+
+### 28. So, create new view (edit.blade.php) and add code. 
+
+### 29. Next, "update" method will store data into database in "PostController.php" file.
+    
+    request()->validate([
+        'title' => 'required',
+        'body' => 'required',
+    ]);
+    Post::find($id)->update($request->all());
+    return redirect()->route('posts.index')->with('success','Post updated successfully');
+
+### 30. The latest step, "destory" method will database selected data from database in "PostController.php" file.
+    
+    Post::find($id)->delete();
+    return redirect()->route('posts.index')->with('success','Post deleted successfully');
